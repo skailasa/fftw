@@ -36,6 +36,8 @@ pub struct Plan<A, B, Plan: PlanSpec> {
     phantom: PhantomData<(A, B)>,
 }
 
+unsafe impl<A: Sync, B: Sync> Sync for Plan<A, B, Plan32> {}
+unsafe impl<A: Sync, B: Sync> Sync for Plan<A, B, Plan64> {}
 unsafe impl<A: Send, B: Send> Send for Plan<A, B, Plan32> {}
 unsafe impl<A: Send, B: Send> Send for Plan<A, B, Plan64> {}
 
