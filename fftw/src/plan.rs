@@ -97,7 +97,7 @@ pub trait C2CPlan: Sized {
     ) -> Result<Self>;
 
     /// Execute complex-to-complex transform
-    fn c2c(&mut self, in_: &mut [Self::Complex], out: &mut [Self::Complex]) -> Result<()>;
+    fn c2c(&self, in_: &mut [Self::Complex], out: &mut [Self::Complex]) -> Result<()>;
 }
 
 /// Trait for the plan of Real-to-Complex transformation
@@ -124,7 +124,7 @@ pub trait R2CPlan: Sized {
     ) -> Result<Self>;
 
     /// Execute real-to-complex transform
-    fn r2c(&mut self, in_: &mut [Self::Real], out: &mut [Self::Complex]) -> Result<()>;
+    fn r2c(&self, in_: &mut [Self::Real], out: &mut [Self::Complex]) -> Result<()>;
 }
 
 /// Trait for the plan of Complex-to-Real transformation
@@ -151,7 +151,7 @@ pub trait C2RPlan: Sized {
     ) -> Result<Self>;
 
     /// Execute complex-to-real transform
-    fn c2r(&mut self, in_: &mut [Self::Complex], out: &mut [Self::Real]) -> Result<()>;
+    fn c2r(&self, in_: &mut [Self::Complex], out: &mut [Self::Real]) -> Result<()>;
 }
 
 pub trait R2RPlan: Sized {
@@ -175,7 +175,7 @@ pub trait R2RPlan: Sized {
     ) -> Result<Self>;
 
     /// Execute complex-to-complex transform
-    fn r2r(&mut self, in_: &mut [Self::Real], out: &mut [Self::Real]) -> Result<()>;
+    fn r2r(&self, in_: &mut [Self::Real], out: &mut [Self::Real]) -> Result<()>;
 }
 
 macro_rules! impl_c2c {
@@ -204,7 +204,7 @@ macro_rules! impl_c2c {
                     phantom: PhantomData,
                 })
             }
-            fn c2c(&mut self, in_: &mut [Self::Complex], out: &mut [Self::Complex]) -> Result<()> {
+            fn c2c(&self, in_: &mut [Self::Complex], out: &mut [Self::Complex]) -> Result<()> {
                 self.check(in_, out)?;
                 unsafe { $exec(self.plan, in_.as_mut_ptr(), out.as_mut_ptr()) };
                 Ok(())
@@ -242,7 +242,7 @@ macro_rules! impl_r2c {
                     phantom: PhantomData,
                 })
             }
-            fn r2c(&mut self, in_: &mut [Self::Real], out: &mut [Self::Complex]) -> Result<()> {
+            fn r2c(&self, in_: &mut [Self::Real], out: &mut [Self::Complex]) -> Result<()> {
                 self.check(in_, out)?;
                 unsafe { $exec(self.plan, in_.as_mut_ptr(), out.as_mut_ptr()) };
                 Ok(())
@@ -280,7 +280,7 @@ macro_rules! impl_c2r {
                     phantom: PhantomData,
                 })
             }
-            fn c2r(&mut self, in_: &mut [Self::Complex], out: &mut [Self::Real]) -> Result<()> {
+            fn c2r(&self, in_: &mut [Self::Complex], out: &mut [Self::Real]) -> Result<()> {
                 self.check(in_, out)?;
                 unsafe { $exec(self.plan, in_.as_mut_ptr(), out.as_mut_ptr()) };
                 Ok(())
@@ -318,7 +318,7 @@ macro_rules! impl_r2r {
                     phantom: PhantomData,
                 })
             }
-            fn r2r(&mut self, in_: &mut [Self::Real], out: &mut [Self::Real]) -> Result<()> {
+            fn r2r(&self, in_: &mut [Self::Real], out: &mut [Self::Real]) -> Result<()> {
                 self.check(in_, out)?;
                 unsafe { $exec(self.plan, in_.as_mut_ptr(), out.as_mut_ptr()) };
                 Ok(())
