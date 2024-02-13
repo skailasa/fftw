@@ -127,6 +127,9 @@ pub trait R2CPlan: Sized {
 
     /// Execute real-to-complex transform
     fn r2c(&self, in_: &mut [Self::Real], out: &mut [Self::Complex]) -> Result<()>;
+
+    /// Estimate the total flops of this plan
+    fn flops(&self, add: &mut f64, mul: &mut f64, fmas: &mut f64);
 }
 
 /// Trait for the plan of Complex-to-Real transformation
@@ -154,6 +157,9 @@ pub trait C2RPlan: Sized {
 
     /// Execute complex-to-real transform
     fn c2r(&self, in_: &mut [Self::Complex], out: &mut [Self::Real]) -> Result<()>;
+
+    /// Estimate the total flops of this plan
+    fn flops(&self, add: &mut f64, mul: &mut f64, fmas: &mut f64);
 }
 
 pub trait R2RPlan: Sized {
@@ -219,7 +225,7 @@ impl_c2c!(c64, Plan64; fftw_plan_dft, fftw_execute_dft);
 impl_c2c!(c32, Plan32; fftwf_plan_dft, fftwf_execute_dft);
 
 macro_rules! impl_r2c {
-    ($R:ty, $C:ty, $Plan:ty; $plan:ident, $exec:ident) => {
+    ($R:ty, $C:ty, $Plan:ty; $plan:ident, $exec:ident, $flops:ident) => {
         impl R2CPlan for Plan<$R, $C, $Plan> {
             type Real = $R;
             type Complex = $C;
@@ -249,15 +255,19 @@ macro_rules! impl_r2c {
                 unsafe { $exec(self.plan, in_.as_mut_ptr(), out.as_mut_ptr()) };
                 Ok(())
             }
+
+            fn flops(&self, add: &mut f64, mul: &mut f64, fmas: &mut f64) {
+                unsafe {$flops(self.plan, add, mul, fmas)}
+            }
         }
     };
 } // impl_r2c!
 
-impl_r2c!(f64, c64, Plan64; fftw_plan_dft_r2c, fftw_execute_dft_r2c);
-impl_r2c!(f32, c32, Plan32; fftwf_plan_dft_r2c, fftwf_execute_dft_r2c);
+impl_r2c!(f64, c64, Plan64; fftw_plan_dft_r2c, fftw_execute_dft_r2c, fftw_flops);
+impl_r2c!(f32, c32, Plan32; fftwf_plan_dft_r2c, fftwf_execute_dft_r2c, fftwf_flops);
 
 macro_rules! impl_c2r {
-    ($R:ty, $C:ty, $Plan:ty; $plan:ident, $exec:ident) => {
+    ($R:ty, $C:ty, $Plan:ty; $plan:ident, $exec:ident, $flops: ident) => {
         impl C2RPlan for Plan<$C, $R, $Plan> {
             type Real = $R;
             type Complex = $C;
@@ -287,12 +297,16 @@ macro_rules! impl_c2r {
                 unsafe { $exec(self.plan, in_.as_mut_ptr(), out.as_mut_ptr()) };
                 Ok(())
             }
+
+            fn flops(&self, add: &mut f64, mul: &mut f64, fmas: &mut f64) {
+                unsafe {$flops(self.plan, add, mul, fmas)}
+            }
         }
     };
 } // impl_c2r!
 
-impl_c2r!(f64, c64, Plan64; fftw_plan_dft_c2r, fftw_execute_dft_c2r);
-impl_c2r!(f32, c32, Plan32; fftwf_plan_dft_c2r, fftwf_execute_dft_c2r);
+impl_c2r!(f64, c64, Plan64; fftw_plan_dft_c2r, fftw_execute_dft_c2r, fftw_flops);
+impl_c2r!(f32, c32, Plan32; fftwf_plan_dft_c2r, fftwf_execute_dft_c2r, fftwf_flops);
 
 macro_rules! impl_r2r {
     ($R:ty, $Plan:ty; $plan:ident, $exec:ident) => {
